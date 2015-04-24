@@ -51,10 +51,15 @@ module SamlIdp
       end
 
       def decode_SAMLRequest(saml_request)
-        zstream  = Zlib::Inflate.new(-Zlib::MAX_WBITS)
-        @saml_request = zstream.inflate(Base64.decode64(saml_request))
-        zstream.finish
-        zstream.close
+        begin
+          zstream  = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+          @saml_request = zstream.inflate(Base64.decode64(saml_request))
+          zstream.finish
+          zstream.close
+        rescue
+          @saml_request = Base64.decode64(saml_request)
+        end
+
         @saml_request_id = @saml_request[/ID=['"](.+?)['"]/, 1]
         @saml_acs_url = @saml_request[/AssertionConsumerServiceURL=['"](.+?)['"]/, 1]
       end
